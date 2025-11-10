@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="author"
+      content="https://www.linkedin.com/in/augusto-césar-almeida/"
+    />
+    <title>Cadastro Inicial</title>
+
+    <!-- Fonte Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="icon" type="image/x-icon" href="favicon-augustoalmeida.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main class="page">
+      <form
+        class="card"
+        action="https://elevagestaofinanceira.app.n8n.cloud/webhook/cadastroempresa"
+        method="post"
+        id="empresaForm"
+        novalidate
+      >
+        <header class="card-head">
+          <div class="brand">
+            <div class="titles">
+              <h1>Cadastro inicial da empresa</h1>
+              <p class="muted">
+                Preencha os dados para gerar o link de autorização.
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <div class="fields">
+          <label class="field">
+            <span class="label">Empresa ID<b class="req">*</b></span>
+            <input
+              name="empresa_id"
+              required
+              placeholder="Identificador interno da empresa"
+              autocomplete="organization"
+            />
+            <small
+              class="error-msg"
+              id="errEmpresaId"
+              role="alert"
+              aria-live="assertive"
+            ></small>
+          </label>
+
+          <label class="field">
+            <span class="label">Razão Social</span>
+            <input
+              name="razao_social"
+              placeholder="Razão social"
+              autocomplete="organization"
+            />
+          </label>
+
+          <label class="field">
+            <span class="label">CNPJ</span>
+            <input
+              name="cnpj"
+              placeholder="00000000000000"
+              inputmode="numeric"
+              pattern="\d{14}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}"
+            />
+            <small class="hint"
+              >Apenas números (14 dígitos).</small
+            >
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit" id="btnSubmit">
+            Cadastrar
+          </button>
+          <button class="btn btn-outline" type="reset">Limpar</button>
+        </div>
+
+        <footer class="foot">
+          <span class="muted">Seus dados são enviados com segurança.</span>
+        </footer>
+      </form>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
