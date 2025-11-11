@@ -1,82 +1,206 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("empresaForm");
-    const empresaIdInput = form.querySelector("input[name='empresa_id']");
-    const cnpjInput = form.querySelector("input[name='cnpj']");
+  const form = document.getElementById("empresaForm");
 
-    // Desativa balões/erros nativos e deixa o JS controlar tudo
-    form.setAttribute("novalidate", "");
+  // ===== Endpoints do n8n =====
+  const VALIDATE_URL =
+    "https://elevagestaofinanceira.app.n8n.cloud/webhook/validar-cliente";
+  const CADASTRO_URL =
+    "https://elevagestaofinanceira.app.n8n.cloud/webhook/cadastroempresa";
 
-    // Regex aceitando "apenas números (14 dígitos)" ou "00.000.000/0000-00"
-    const CNPJ_REGEX = /^\d{14}$|^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
+  // ===== Elementos =====
+  const inputCodigo = document.getElementById("clienteCode");
+  const inputRS = document.getElementById("razaoSocial");
+  const inputNF = document.getElementById("nomeFantasia");
+  const inputCNPJ = document.getElementById("cnpj");
+  const btnValidar = document.getElementById("btnValidar");
+  const btnSubmit = document.getElementById("btnSubmit");
+  const extraFields = document.getElementById("extraFields");
 
-    // Helpers para exibir/limpar erros
-    function showError(inputEl, message, targetId) {
-      // container <label class="field"> ... </label>
-      const container = inputEl.closest(".field");
-      // remove erros antigos no container
-      container.querySelectorAll(".error-msg").forEach((el) => el.remove());
+  // ===== Helpers =====
+  const CNPJ_FMT_REGEX = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
+  const onlyDigits = (v) => String(v || "").replace(/\D/g, "");
+  const normCode = (v) =>
+    String(v || "")
+      .trim()
+      .toUpperCase();
 
-      let target = targetId ? document.getElementById(targetId) : null;
-      if (!target) {
-        target = document.createElement("small");
-        target.className = "error-msg";
-        target.setAttribute("role", "alert");
-        target.setAttribute("aria-live", "assertive");
-        // insere logo após o input
-        inputEl.insertAdjacentElement("afterend", target);
-      }
-
-      target.textContent = message;
-      target.style.color = "red";
+  function setError(inputEl, message) {
+    const container = inputEl.closest(".field");
+    let target = container.querySelector(".error-msg");
+    if (!target) {
+      target = document.createElement("small");
+      target.className = "error-msg";
+      target.setAttribute("role", "alert");
+      target.setAttribute("aria-live", "assertive");
+      inputEl.insertAdjacentElement("afterend", target);
+    }
+    target.textContent = message || "";
+    target.style.color = message ? "red" : "";
+    if (message) {
       inputEl.setAttribute("aria-invalid", "true");
       inputEl.style.borderColor = "red";
-    }
-
-    function clearError(inputEl) {
-      const container = inputEl.closest(".field");
-      container.querySelectorAll(".error-msg").forEach((el) => el.remove());
+    } else {
       inputEl.removeAttribute("aria-invalid");
       inputEl.style.borderColor = "#000";
-      // limpa placeholder de erro dedicado (Empresa ID)
-      const errEmpresaId = document.getElementById("errEmpresaId");
-      if (errEmpresaId) errEmpresaId.textContent = "";
+    }
+  }
+
+  function clearError(inputEl) {
+    setError(inputEl, "");
+  }
+
+  function setLoading(btn, loading, idleLabel = "Processar") {
+    if (loading) {
+      btn.dataset._label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Processando...";
+    } else {
+      btn.disabled = false;
+      btn.textContent = btn.dataset._label || idleLabel;
+    }
+  }
+
+  function showExtraFields() {
+    extraFields.classList.remove("hidden");
+    btnValidar.style.display = "none";
+    inputCodigo.readOnly = true;
+  }
+
+  function hideExtraFields() {
+    extraFields.classList.add("hidden");
+    btnValidar.style.display = "inline-block";
+    inputCodigo.readOnly = false;
+  }
+
+  function resetFormState() {
+    // limpa erros
+    [inputCodigo, inputRS, inputNF, inputCNPJ].forEach(clearError);
+    // limpa campos (o próprio reset do form fará isso também)
+    hideExtraFields();
+    inputCodigo.focus();
+  }
+
+  // desativa validação nativa; JS controla
+  form.setAttribute("novalidate", "");
+
+  // limpa erros enquanto digita
+  [inputCodigo, inputRS, inputNF, inputCNPJ].forEach((el) => {
+    el.addEventListener("input", () => clearError(el));
+  });
+
+  // ============ Etapa 1: Validar código ============
+  btnValidar.addEventListener("click", async () => {
+    const code = normCode(inputCodigo.value);
+    if (!code) {
+      setError(inputCodigo, "Informe o código do cliente.");
+      return;
+    }
+    clearError(inputCodigo);
+    setLoading(btnValidar, true, "Validar");
+
+    try {
+      const resp = await fetch(VALIDATE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ cliente_code: code }),
+      });
+      let data = {};
+      try {
+        data = await resp.json();
+      } catch (_) {}
+
+      if (!(resp.ok && data?.ok === true)) {
+  setError(inputCodigo, data?.error || "Código inválido ou inativo.");
+  return;
+}
+
+      // OK → libera restante
+      inputCodigo.value = code;
+      showExtraFields();
+      inputRS.focus();
+    } catch (_) {
+      setError(inputCodigo, "Não foi possível validar. Tente novamente.");
+    } finally {
+      setLoading(btnValidar, false, "Validar");
+    }
+  });
+
+  // ============ Etapa 2: Submit do cadastro ============
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // intercepta envio padrão
+
+    const cliente_code = normCode(inputCodigo.value);
+    if (!cliente_code) {
+      setError(inputCodigo, "Valide primeiro o código do cliente.");
+      return;
     }
 
-    // Limpa erro enquanto o usuário digita
-    [empresaIdInput, cnpjInput].forEach((el) => {
-      el.addEventListener("input", () => clearError(el));
-    });
+    const razao_social = String(inputRS.value || "").trim();
+    const nome_fantasia = String(inputNF.value || "").trim();
+    const cnpjRaw = String(inputCNPJ.value || "").trim();
+    const cnpjDigits = onlyDigits(cnpjRaw);
 
-    form.addEventListener("submit", (e) => {
-      let isValid = true;
+    // validações mínimas
+    let ok = true;
+    if (!razao_social) {
+      setError(inputRS, "Informe a razão social.");
+      ok = false;
+    }
+    if (!nome_fantasia) {
+      setError(inputNF, "Informe o nome fantasia.");
+      ok = false;
+    }
+    // aceita formatado (CNPJ_FMT_REGEX) ou apenas dígitos (14)
+    if (!(CNPJ_FMT_REGEX.test(cnpjRaw) || cnpjDigits.length === 14)) {
+      setError(
+        inputCNPJ,
+        "CNPJ deve ter 14 dígitos (apenas números)."
+      );
+      ok = false;
+    }
+    if (!ok) return;
 
-      // --- Empresa ID (obrigatório) ---
-      if (empresaIdInput.value.trim() === "") {
-        showError(
-          empresaIdInput,
-          "O campo Empresa ID é obrigatório.",
-          "errEmpresaId" // já existe no HTML
-        );
-        isValid = false;
+    setLoading(btnSubmit, true, "Cadastrar");
+    try {
+      const resp = await fetch(CADASTRO_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "text/html" },
+        body: JSON.stringify({
+          cliente_code,
+          razao_social,
+          nome_fantasia,
+          cnpj: cnpjDigits, // normaliza para apenas dígitos
+        }),
+      });
+
+      const html = await resp.text();
+
+      if (!resp.ok) {
+        alert("Não foi possível concluir o cadastro.");
+        return;
       }
 
-      // --- CNPJ (se preenchido, precisa ser numérico/formato válido) ---
-      const cnpjValue = cnpjInput.value.trim();
-      if (cnpjValue !== "" && !CNPJ_REGEX.test(cnpjValue)) {
-        showError(
-          cnpjInput,
-          "O CNPJ deve conter apenas números (14 dígitos) ou estar no formato 00.000.000/0000-00."
-        );
-        isValid = false;
-      }
+      // Abre o HTML retornado (página com botão "Acessar")
+      const w = window.open("", "_blank");
+      w.document.write(html);
+      w.document.close();
 
-      if (!isValid) {
-        e.preventDefault();
-        // foca no primeiro campo inválido
-        (empresaIdInput.getAttribute("aria-invalid") === "true"
-          ? empresaIdInput
-          : cnpjInput
-        ).focus();
-      }
-    });
+      // Reseta para novo cadastro >>> TIRAR
+      form.reset();
+      resetFormState();
+    } catch (_) {
+      alert("Erro ao enviar. Tente novamente.");
+    } finally {
+      setLoading(btnSubmit, false, "Cadastrar");
+    }
   });
+
+  // ============ Botão "Limpar" (reset) ============
+  form.addEventListener("reset", () => {
+    // pequeno delay para permitir que o reset limpe os campos
+    setTimeout(() => resetFormState(), 0);
+  });
+});

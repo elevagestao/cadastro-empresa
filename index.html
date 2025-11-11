@@ -7,7 +7,7 @@
       name="author"
       content="https://www.linkedin.com/in/augusto-césar-almeida/"
     />
-    <title>Cadastro Inicial</title>
+    <title>Cadastro de Acesso</title>
 
     <!-- Fonte Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -33,7 +33,7 @@
         <header class="card-head">
           <div class="brand">
             <div class="titles">
-              <h1>Cadastro inicial da empresa</h1>
+              <h1>Cadastro de Acesso à API da conta azul</h1>
               <p class="muted">
                 Preencha os dados para gerar o link de autorização.
               </p>
@@ -42,50 +42,69 @@
         </header>
 
         <div class="fields">
-          <label class="field">
-            <span class="label">Empresa ID<b class="req">*</b></span>
-            <input
-              name="empresa_id"
-              required
-              placeholder="Identificador interno da empresa"
-              autocomplete="organization"
-            />
+          <label class="field codigo-cliente">
+            <span class="label">Código<b class="req">*</b></span>
+            <div class="codigo-wrapper">
+              <input
+                id="clienteCode"
+                name="cliente_code"
+                required
+                placeholder="Informe seu código de cliente"
+                autocomplete="organization"
+              />
+              <button type="button" id="btnValidar" class="btn valid">Validar</button>
+            </div>
             <small
               class="error-msg"
-              id="errEmpresaId"
+              id="errClienteCode"
               role="alert"
               aria-live="assertive"
             ></small>
           </label>
 
-          <label class="field">
-            <span class="label">Razão Social</span>
-            <input
-              name="razao_social"
-              placeholder="Razão social"
-              autocomplete="organization"
-            />
-          </label>
+          <!-- Esconde os campos e botões de cadastro -->
+          <div id="extraFields" class="hidden">
+            <label class="field">
+              <span class="label">Razão Social<b class="req">*</b></span>
+              <input
+                id="razaoSocial"
+                name="razao_social"
+                placeholder="Razão social"
+                autocomplete="organization"
+                required
+              />
+            </label>
 
-          <label class="field">
-            <span class="label">CNPJ</span>
-            <input
-              name="cnpj"
-              placeholder="00000000000000"
-              inputmode="numeric"
-              pattern="\d{14}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}"
-            />
-            <small class="hint"
-              >Apenas números (14 dígitos).</small
-            >
-          </label>
-        </div>
+            <label class="field">
+              <span class="label">Nome Fantasia<b class="req">*</b></span>
+              <input
+                id="nomeFantasia"
+                name="nome_fantasia"
+                placeholder="Nome fantasia"
+                autocomplete="organization"
+                required
+              />
+            </label>
 
-        <div class="actions">
-          <button class="btn btn-primary" type="submit" id="btnSubmit">
-            Cadastrar
-          </button>
-          <button class="btn btn-outline" type="reset">Limpar</button>
+            <label class="field">
+              <span class="label">CNPJ<b class="req">*</b></span>
+              <input
+                id="cnpj"
+                name="cnpj"
+                placeholder="00000000000000"
+                inputmode="numeric"
+                pattern="\d{14}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}"
+                required
+              />
+              <small class="hint">Apenas números (14 dígitos).</small>
+            </label>
+            <div class="actions">
+              <button class="btn btn-primary" type="submit" id="btnSubmit">
+                Cadastrar
+              </button>
+              <button class="btn btn-outline" type="reset">Limpar</button>
+            </div>
+          </div>
         </div>
 
         <footer class="foot">

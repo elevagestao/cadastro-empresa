@@ -41,14 +41,13 @@ body {
   margin: 0;
   font-size: 28px;
   font-weight: 800;
-  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 .muted {
   color: #555;
   font-size: 15px;
   margin-top: 4px;
-  margin-bottom: 26px;
+  margin-bottom: 16px;
 }
 
 /* ---------- Campos ---------- */
@@ -64,6 +63,7 @@ body {
 .label {
   font-weight: 700;
   font-size: 14px;
+  margin-top: 10px;
 }
 .req {
   color: rgb(232, 26, 26);
@@ -90,6 +90,13 @@ input::placeholder {
 input:focus {
   outline: 2px solid #000;
   outline-offset: 1px;
+}
+
+.hidden {
+  display: none;
+}
+.codigo-cliente input {
+  width: 70%;
 }
 
 /* ---------- Botões ---------- */
@@ -129,7 +136,31 @@ input:focus {
   color: #555;
 }
 
+/* Input e botão de Validar */
+.codigo-wrapper {
+  display: flex;
+  gap: 8px;
+}
+.codigo-wrapper input {
+  width: 70%;
+}
+.hidden {
+  display: none;
+}
+.valid {
+  width: 30%;
+}
+
 /* ---------- Responsivo ---------- */
+
+@media (max-width: 720px) {
+  .codigo-cliente input {
+    width: 70%;
+  }
+  .valid {
+    width: 30%;
+  }
+}
 
 /* Celulares comuns (até 520px) */
 @media (max-width: 520px) {
