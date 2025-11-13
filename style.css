@@ -155,14 +155,16 @@ input:focus {
 
 @media (max-width: 720px) {
   .codigo-cliente input {
-    width: 70%;
+    width: 62%;
   }
   .valid {
-    width: 30%;
+    width: 38%;
+  }
+  input::placeholder {
+    font-size: 13px;
   }
 }
 
-/* Celulares comuns (até 520px) */
 @media (max-width: 520px) {
   .page {
     padding: 16px;
@@ -193,7 +195,6 @@ input:focus {
   }
 
   input {
-    /* evita zoom automático no iOS/Android */
     font-size: 16px;
     padding: 10px 12px;
   }
@@ -206,7 +207,7 @@ input:focus {
 
   .btn {
     padding: 12px 14px;
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .foot {
