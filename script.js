@@ -1,14 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("empresaForm");
 
-  // ===== Endpoints do n8n =====
   const VALIDATE_URL =
     "https://elevagestaofinanceira.app.n8n.cloud/webhook/validar-cliente";
   // CADASTRO_URL não é mais usado, o form envia direto pelo action
-  // const CADASTRO_URL =
-  //   "https://elevagestaofinanceira.app.n8n.cloud/webhook/cadastroempresa";
 
-  // ===== Elementos =====
+
   const inputCodigo = document.getElementById("clienteCode");
   const inputRS = document.getElementById("razaoSocial");
   const inputNF = document.getElementById("nomeFantasia");
@@ -17,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnSubmit = document.getElementById("btnSubmit");
   const extraFields = document.getElementById("extraFields");
 
-  // ===== Helpers =====
   const CNPJ_FMT_REGEX = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
   const onlyDigits = (v) => String(v || "").replace(/\D/g, "");
   const normCode = (v) =>
@@ -74,22 +70,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetFormState() {
-    // limpa erros
     [inputCodigo, inputRS, inputNF, inputCNPJ].forEach(clearError);
-    // esconde campos extras
     hideExtraFields();
     inputCodigo.focus();
   }
 
-  // desativa validação nativa; JS controla
   form.setAttribute("novalidate", "");
 
-  // limpa erros enquanto digita
   [inputCodigo, inputRS, inputNF, inputCNPJ].forEach((el) => {
     el.addEventListener("input", () => clearError(el));
   });
 
-  // ============ Etapa 1: Validar código ============
   btnValidar.addEventListener("click", async () => {
     const code = normCode(inputCodigo.value);
     if (!code) {
@@ -119,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // OK → libera restante
       inputCodigo.value = code;
       showExtraFields();
       inputRS.focus();
@@ -130,9 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ============ Etapa 2: Submit do cadastro ============
   form.addEventListener("submit", (e) => {
-    // aqui a gente só valida; NÃO envia via fetch
 
     const cliente_code = normCode(inputCodigo.value);
     if (!cliente_code) {
@@ -158,23 +146,19 @@ document.addEventListener("DOMContentLoaded", () => {
       ok = false;
     }
 
-    // aceita formatado (CNPJ_FMT_REGEX) ou apenas dígitos (14)
     if (!(CNPJ_FMT_REGEX.test(cnpjRaw) || cnpjDigits.length === 14)) {
       setError(inputCNPJ, "CNPJ deve ter 14 dígitos (apenas números).");
       ok = false;
     }
 
     if (!ok) {
-      e.preventDefault(); // bloqueia envio se houver erro
+      e.preventDefault();
       return;
     }
 
-    // se chegou aqui, deixa o browser enviar o form normalmente
-    // (vai postar para o action do <form> e abrir o HTML retornado)
     setLoading(btnSubmit, true, "Cadastrar");
   });
 
-  // ============ Botão "Limpar" (reset) ============
   form.addEventListener("reset", () => {
     setTimeout(() => resetFormState(), 0);
   });
